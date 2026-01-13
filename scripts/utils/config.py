@@ -9,6 +9,11 @@ from typing import Optional, Dict, Any
 from pathlib import Path
 
 
+# Wallet storage location (agent's own wallet)
+WALLET_DIR = Path.home() / ".blockrun"
+WALLET_FILE = WALLET_DIR / ".session"
+
+
 # Default configuration values
 DEFAULTS = {
     "api_url": "https://blockrun.ai/api",
@@ -20,6 +25,55 @@ DEFAULTS = {
 }
 
 
+def load_wallet() -> Optional[str]:
+    """
+    Load wallet private key from ~/.blockrun/.session file.
+
+    AI agents should have their own wallets. This is the agent's wallet.
+
+    Returns:
+        Private key string or None if not found
+    """
+    # Check .session first (preferred)
+    if WALLET_FILE.exists():
+        key = WALLET_FILE.read_text().strip()
+        if key:
+            return key
+
+    # Check legacy wallet.key
+    legacy_file = WALLET_DIR / "wallet.key"
+    if legacy_file.exists():
+        key = legacy_file.read_text().strip()
+        if key:
+            return key
+
+    return None
+
+
+def get_private_key() -> Optional[str]:
+    """
+    Get private key - session file first (agent wallet), then env vars (user override).
+
+    Priority:
+        1. ~/.blockrun/.session - Agent's own wallet
+        2. BLOCKRUN_WALLET_KEY env var - User override
+        3. BASE_CHAIN_WALLET_KEY env var - Legacy fallback
+
+    Returns:
+        Private key string or None
+    """
+    # PRIORITY 1: Agent's own wallet (session file)
+    session_key = load_wallet()
+    if session_key:
+        return session_key
+
+    # PRIORITY 2: User override via environment
+    return (
+        os.environ.get("BLOCKRUN_WALLET_KEY") or
+        os.environ.get("BASE_CHAIN_WALLET_KEY")
+    )
+
+
 def get_config() -> Dict[str, Any]:
     """
     Get current configuration from environment and defaults.
@@ -29,28 +83,12 @@ def get_config() -> Dict[str, Any]:
     """
     return {
         "api_url": os.environ.get("BLOCKRUN_API_URL", DEFAULTS["api_url"]),
-        "wallet_key_set": bool(
-            os.environ.get("BLOCKRUN_WALLET_KEY") or
-            os.environ.get("BASE_CHAIN_WALLET_KEY")
-        ),
+        "wallet_key_set": bool(get_private_key()),
         "default_model": os.environ.get("BLOCKRUN_DEFAULT_MODEL", DEFAULTS["default_model"]),
         "default_image_model": os.environ.get("BLOCKRUN_IMAGE_MODEL", DEFAULTS["default_image_model"]),
         "max_tokens": int(os.environ.get("BLOCKRUN_MAX_TOKENS", DEFAULTS["max_tokens"])),
         "timeout": float(os.environ.get("BLOCKRUN_TIMEOUT", DEFAULTS["timeout"])),
     }
-
-
-def get_private_key() -> Optional[str]:
-    """
-    Get private key from environment.
-
-    Returns:
-        Private key string or None
-    """
-    return (
-        os.environ.get("BLOCKRUN_WALLET_KEY") or
-        os.environ.get("BASE_CHAIN_WALLET_KEY")
-    )
 
 
 def validate_config() -> Dict[str, Any]:
@@ -70,7 +108,7 @@ def validate_config() -> Dict[str, Any]:
 
     # Check for wallet key
     if not get_private_key():
-        errors.append("BLOCKRUN_WALLET_KEY not set")
+        errors.append("No wallet found (check ~/.blockrun/.session or BLOCKRUN_WALLET_KEY)")
 
     # Check API URL format
     api_url = os.environ.get("BLOCKRUN_API_URL", DEFAULTS["api_url"])

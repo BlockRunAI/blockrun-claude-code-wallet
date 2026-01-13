@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BlockRun Skill Plus - Unified CLI Entry Point
+BlockRun Claude Code Wallet - Unified CLI Entry Point
 
 Access unlimited LLM models and image generation through USDC micropayments.
 Your private key never leaves your machine - only signatures are transmitted.
@@ -47,14 +47,19 @@ except ImportError:
 
 
 def check_environment() -> bool:
-    """Check if required environment variables are set."""
-    key = os.environ.get("BLOCKRUN_WALLET_KEY") or os.environ.get("BASE_CHAIN_WALLET_KEY")
+    """Check if wallet is available (session file or env var)."""
+    try:
+        from scripts.utils.config import get_private_key
+    except ImportError:
+        from utils.config import get_private_key
+
+    key = get_private_key()
     if not key:
         branding.print_error(
-            "BLOCKRUN_WALLET_KEY environment variable not set",
+            "No wallet found",
             help_link="https://blockrun.ai/docs/setup"
         )
-        print("  Set your wallet private key:")
+        print("  Wallet auto-creates on first use, or set manually:")
         print("    export BLOCKRUN_WALLET_KEY=\"0x...\"")
         print()
         return False
@@ -144,7 +149,12 @@ def cmd_chat(
 
         # Print response
         branding.print_response(response)
-        branding.print_footer()
+
+        # Show spending
+        spending = client.get_spending()
+        branding.print_footer(
+            actual_cost=f"{spending['total_usd']:.4f}",
+        )
 
         client.close()
         return 0
@@ -206,7 +216,12 @@ def cmd_image(
         else:
             branding.print_error("No image data returned")
 
-        branding.print_footer()
+        # Show spending
+        spending = client.get_spending()
+        branding.print_footer(
+            actual_cost=f"{spending['total_usd']:.4f}",
+        )
+
         client.close()
         return 0
 
@@ -254,30 +269,38 @@ def cmd_balance():
 
 
 def cmd_models():
-    """List available models."""
-    if not HAS_SDK:
-        branding.print_error(
-            "blockrun_llm SDK not installed",
-            help_link="https://github.com/blockrunai/blockrun-llm"
-        )
-        return 1
-
-    if not check_environment():
-        return 1
-
+    """List available models (no wallet required)."""
     try:
-        client = LLMClient()
+        # Try to use SDK standalone functions first
+        from blockrun_llm import list_models, list_image_models
 
-        # Fetch models
-        models = client.list_models()
+        llm_models = list_models()
+        image_models = list_image_models()
 
-        if models:
-            branding.print_models_list(models)
+        if llm_models or image_models:
+            branding.print_models_list(llm_models, image_models)
         else:
             branding.print_info("No models returned. Check API connection.")
 
-        client.close()
         return 0
+
+    except ImportError:
+        # Fallback: direct API call if SDK not updated
+        import httpx
+
+        try:
+            with httpx.Client(timeout=30) as client:
+                response = client.get("https://blockrun.ai/api/v1/models")
+                if response.status_code == 200:
+                    models = response.json().get("data", [])
+                    branding.print_models_list(models, [])
+                    return 0
+                else:
+                    branding.print_error(f"API error: {response.status_code}")
+                    return 1
+        except Exception as e:
+            branding.print_error(f"Could not fetch models: {e}")
+            return 1
 
     except Exception as e:
         branding.print_error(f"Error: {e}")
@@ -329,8 +352,8 @@ def cmd_version():
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        prog="blockrun-skill-plus",
-        description="BlockRun Skill Plus - Access unlimited LLMs via USDC micropayments",
+        prog="blockrun-claude-code-wallet",
+        description="BlockRun Claude Code Wallet - Access unlimited LLMs via USDC micropayments",
         epilog="""
 Examples:
   %(prog)s "What is quantum computing?"

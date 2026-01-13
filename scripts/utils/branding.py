@@ -10,7 +10,7 @@ import sys
 
 
 class BlockRunBranding:
-    """Unified branding output system for BlockRun Skill Plus."""
+    """Unified branding output system for BlockRun Claude Code Wallet."""
 
     # Compact ASCII logo for CLI
     LOGO = """
@@ -19,7 +19,7 @@ class BlockRunBranding:
 |  _ \\| |/ _ \\ / __| |/ / |_) | | | | '_ \\
 | |_) | | (_) | (__|   <|  _ <| |_| | | | |
 |____/|_|\\___/ \\___|_|\\_\\_| \\_\\\\__,_|_| |_|
-                              SKILL PLUS"""
+                         CLAUDE CODE WALLET"""
 
     # Simple header for regular operations
     HEADER_LINE = "=" * 60
@@ -74,7 +74,7 @@ class BlockRunBranding:
             print()
 
         print(self._c("dim", self.HEADER_LINE))
-        print(self._c("bold", "  BLOCKRUN SKILL PLUS"))
+        print(self._c("bold", "  BLOCKRUN CLAUDE CODE WALLET"))
         print(self._c("dim", self.HEADER_LINE))
 
         # Model info
@@ -119,7 +119,7 @@ class BlockRunBranding:
                 print(f"  |  Balance: {new_balance} USDC", end="")
             print()
 
-        print(f"  {self._c('dim', 'Powered by BlockRun • blockrun.ai • x402.org')}")
+        print(f"  {self._c('dim', 'Powered by BlockRun • blockrun.ai')}")
 
     def print_error(self, message: str, help_link: Optional[str] = None):
         """
@@ -162,32 +162,49 @@ class BlockRunBranding:
         print(self._c("dim", self.HEADER_LINE))
         print()
 
-    def print_models_list(self, models: list):
+    def print_models_list(self, models: list, image_models: list = None):
         """
-        Print available models in branded format.
+        Print available models in branded format with pricing.
 
         Args:
-            models: List of model dicts with id, provider, pricing info
+            models: List of LLM model dicts with id, pricing info
+            image_models: Optional list of image model dicts
         """
         print()
         print(self._c("dim", self.HEADER_LINE))
         print(self._c("bold", "  AVAILABLE MODELS"))
         print(self._c("dim", self.HEADER_LINE))
         print()
+        print(f"  {self._c('dim', 'Live data from:')} {self._c('cyan', 'https://blockrun.ai/api/pricing')}")
+        print()
 
-        for model in models:
-            model_id = model.get("id", "unknown")
-            provider = model.get("provider", "")
-            pricing = model.get("pricing", {})
-
-            print(f"  {self._c('cyan', model_id)}")
-            if provider:
-                print(f"    Provider: {provider}")
-            if pricing:
-                input_price = pricing.get("input", "N/A")
-                output_price = pricing.get("output", "N/A")
-                print(f"    Pricing: ${input_price}/1K in, ${output_price}/1K out")
+        # LLM Models
+        if models:
+            print(self._c("bold", "  Chat Models:"))
             print()
+            for model in models:
+                model_id = model.get("id", "unknown")
+                # Handle different pricing formats from API
+                input_price = model.get("inputPrice") or model.get("pricing", {}).get("input")
+                output_price = model.get("outputPrice") or model.get("pricing", {}).get("output")
+
+                print(f"    {self._c('cyan', model_id)}")
+                if input_price is not None and output_price is not None:
+                    print(f"      ${input_price}/M in, ${output_price}/M out")
+                print()
+
+        # Image Models
+        if image_models:
+            print(self._c("bold", "  Image Models:"))
+            print()
+            for model in image_models:
+                model_id = model.get("id", "unknown")
+                price = model.get("pricePerImage")
+
+                print(f"    {self._c('cyan', model_id)}")
+                if price is not None:
+                    print(f"      ${price}/image")
+                print()
 
         print(self._c("dim", self.HEADER_LINE))
         print(f"  {self._c('dim', 'Prices in USDC • Pay only for what you use')}")
