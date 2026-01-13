@@ -151,7 +151,7 @@ User: "yes"
 
 ```
 1. pip install blockrun-llm
-2. First use → Wallet auto-created at ~/.blockrun/.session
+2. First use → Wallet auto-created at ~/.blockrun/
 3. Get QR code for easy funding:
    python -c "from blockrun_llm import open_wallet_qr, get_wallet_address; open_wallet_qr(get_wallet_address())"
 4. Scan QR with MetaMask, send $1-5 USDC on Base
