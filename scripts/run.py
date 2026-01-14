@@ -34,9 +34,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from scripts.utils.branding import branding
+    from scripts.utils.spending import SpendingTracker
 except ImportError:
     # Fallback if running directly
     from utils.branding import branding
+    from utils.spending import SpendingTracker
 
 # Try to import blockrun_llm SDK
 try:
@@ -129,6 +131,17 @@ def cmd_chat(
     # Determine model
     selected_model = model or get_smart_model(prompt, cheap=cheap, fast=fast)
 
+    # Check budget before making call
+    tracker = SpendingTracker()
+    within_budget, remaining = tracker.check_budget()
+    if not within_budget:
+        branding.print_budget_error(
+            spent=tracker.get_total(),
+            limit=tracker.get_limit(),
+            calls=tracker.get_calls()
+        )
+        return 1
+
     try:
         client = LLMClient()
 
@@ -150,10 +163,19 @@ def cmd_chat(
         # Print response
         branding.print_response(response)
 
-        # Show spending
-        spending = client.get_spending()
+        # Record spending
+        sdk_spending = client.get_spending()
+        call_cost = sdk_spending['total_usd']
+        tracker.record(selected_model, call_cost)
+
+        # Show spending with session totals
+        budget_limit = tracker.get_limit()
         branding.print_footer(
-            actual_cost=f"{spending['total_usd']:.4f}",
+            actual_cost=f"{call_cost:.4f}",
+            session_total=tracker.get_total(),
+            session_calls=tracker.get_calls(),
+            budget_remaining=remaining - call_cost if budget_limit else None,
+            budget_limit=budget_limit,
         )
 
         client.close()
@@ -211,6 +233,17 @@ def cmd_image(
 
     selected_model = model or "google/nano-banana"
 
+    # Check budget before making call
+    tracker = SpendingTracker()
+    within_budget, remaining = tracker.check_budget()
+    if not within_budget:
+        branding.print_budget_error(
+            spent=tracker.get_total(),
+            limit=tracker.get_limit(),
+            calls=tracker.get_calls()
+        )
+        return 1
+
     try:
         client = ImageClient()
 
@@ -238,10 +271,19 @@ def cmd_image(
         else:
             branding.print_error("No image data returned")
 
-        # Show spending
-        spending = client.get_spending()
+        # Record spending
+        sdk_spending = client.get_spending()
+        call_cost = sdk_spending['total_usd']
+        tracker.record(selected_model, call_cost)
+
+        # Show spending with session totals
+        budget_limit = tracker.get_limit()
         branding.print_footer(
-            actual_cost=f"{spending['total_usd']:.4f}",
+            actual_cost=f"{call_cost:.4f}",
+            session_total=tracker.get_total(),
+            session_calls=tracker.get_calls(),
+            budget_remaining=remaining - call_cost if budget_limit else None,
+            budget_limit=budget_limit,
         )
 
         client.close()
@@ -444,6 +486,41 @@ def cmd_version():
     return 0
 
 
+def cmd_spending():
+    """Show spending summary."""
+    tracker = SpendingTracker()
+    branding.print_spending_summary(tracker.data)
+    return 0
+
+
+def cmd_set_budget(amount: float):
+    """Set daily budget limit."""
+    tracker = SpendingTracker()
+    tracker.set_budget(amount)
+    branding.print_success(f"Budget set to ${amount:.2f}/day")
+
+    # Show current status
+    spent = tracker.get_total()
+    remaining = amount - spent
+    if remaining > 0:
+        print(f"  Current spending: ${spent:.4f}")
+        print(f"  Remaining today: ${remaining:.4f}")
+    else:
+        print(f"  Warning: Already spent ${spent:.4f} (over budget)")
+    print()
+    return 0
+
+
+def cmd_clear_budget():
+    """Remove budget limit."""
+    tracker = SpendingTracker()
+    tracker.clear_budget()
+    branding.print_success("Budget limit removed")
+    print(f"  Session spending: ${tracker.get_total():.4f} ({tracker.get_calls()} calls)")
+    print()
+    return 0
+
+
 def main():
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -494,6 +571,24 @@ More info: https://blockrun.ai
         "--version", "-v",
         action="store_true",
         help="Show plugin version",
+    )
+
+    # Budget options
+    parser.add_argument(
+        "--spending",
+        action="store_true",
+        help="Show spending summary for today",
+    )
+    parser.add_argument(
+        "--set-budget",
+        type=float,
+        metavar="AMOUNT",
+        help="Set daily budget limit in USD (e.g., --set-budget 1.00)",
+    )
+    parser.add_argument(
+        "--clear-budget",
+        action="store_true",
+        help="Remove daily budget limit",
     )
 
     # Chat options
@@ -549,6 +644,15 @@ More info: https://blockrun.ai
 
     if args.models:
         return cmd_models()
+
+    if args.spending:
+        return cmd_spending()
+
+    if args.set_budget is not None:
+        return cmd_set_budget(args.set_budget)
+
+    if args.clear_budget:
+        return cmd_clear_budget()
 
     if not args.prompt:
         parser.print_help()

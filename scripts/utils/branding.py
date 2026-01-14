@@ -102,6 +102,10 @@ class BlockRunBranding:
         self,
         actual_cost: Optional[str] = None,
         new_balance: Optional[str] = None,
+        session_total: Optional[float] = None,
+        session_calls: Optional[int] = None,
+        budget_remaining: Optional[float] = None,
+        budget_limit: Optional[float] = None,
     ):
         """
         Print branded footer after operation.
@@ -109,15 +113,23 @@ class BlockRunBranding:
         Args:
             actual_cost: Actual cost of the operation
             new_balance: New wallet balance after operation
+            session_total: Total spent this session
+            session_calls: Number of calls this session
+            budget_remaining: Remaining budget (None if no limit)
+            budget_limit: Budget limit (None if no limit)
         """
         print()
         print(self._c("dim", "-" * 60))
 
         if actual_cost:
-            print(f"  {self._c('green', '✓')} Cost: ${actual_cost}", end="")
-            if new_balance:
-                print(f"  |  Balance: {new_balance} USDC", end="")
-            print()
+            print(f"  {self._c('green', '✓')} This call: ${actual_cost}")
+
+        if session_total is not None:
+            calls_str = f" ({session_calls} calls)" if session_calls else ""
+            print(f"  {self._c('green', '✓')} Session total: ${session_total:.4f}{calls_str}")
+
+        if budget_remaining is not None and budget_limit is not None:
+            print(f"  {self._c('green', '✓')} Budget remaining: ${budget_remaining:.4f} of ${budget_limit:.2f}")
 
         print(f"  {self._c('dim', 'Powered by BlockRun • blockrun.ai')}")
 
@@ -208,6 +220,69 @@ class BlockRunBranding:
 
         print(self._c("dim", self.HEADER_LINE))
         print(f"  {self._c('dim', 'Prices in USDC • Pay only for what you use')}")
+        print()
+
+
+    def print_budget_error(self, spent: float, limit: float, calls: int):
+        """
+        Print budget limit reached error.
+
+        Args:
+            spent: Amount spent
+            limit: Budget limit
+            calls: Number of calls made
+        """
+        print()
+        print(self._c("dim", self.HEADER_LINE))
+        print(self._c("yellow", "  ⚠ BUDGET LIMIT REACHED"))
+        print(self._c("dim", self.HEADER_LINE))
+        print(f"  Spent: {self._c('red', f'${spent:.4f}')} across {calls} calls")
+        print(f"  Limit: ${limit:.2f}/day")
+        print()
+        print("  Options:")
+        print(f"    {self._c('cyan', 'python run.py --set-budget 2.00')}   # Increase limit")
+        print(f"    {self._c('cyan', 'python run.py --clear-budget')}      # Remove limit")
+        print(f"    {self._c('dim', '(Budget resets tomorrow)')}")
+        print()
+
+    def print_spending_summary(self, data: dict):
+        """
+        Print spending summary.
+
+        Args:
+            data: Spending tracker data dict
+        """
+        spending = data.get("spending", {})
+        total = spending.get("total_usd", 0.0)
+        calls = spending.get("calls", 0)
+        limit = data.get("budget_limit")
+        history = data.get("history", [])
+        session_id = data.get("session_id", "today")
+
+        print()
+        print(self._c("dim", self.HEADER_LINE))
+        print(self._c("bold", "  SPENDING SUMMARY"))
+        print(self._c("dim", self.HEADER_LINE))
+        print(f"  Date: {session_id}")
+        print(f"  Spent: {self._c('cyan', f'${total:.4f}')} across {calls} calls")
+
+        if limit is not None:
+            remaining = max(0, limit - total)
+            print(f"  Budget: ${limit:.2f} ({self._c('green', f'${remaining:.4f}')} remaining)")
+        else:
+            print(f"  Budget: {self._c('dim', 'No limit set')}")
+
+        if history:
+            print()
+            print(self._c("bold", "  Recent calls:"))
+            for entry in history[-10:]:
+                ts = entry.get("timestamp", "")
+                time_str = ts[11:16] if len(ts) >= 16 else ts  # Extract HH:MM
+                model = entry.get("model", "unknown")
+                cost = entry.get("cost", 0)
+                print(f"    {time_str}  {model:<30}  ${cost:.4f}")
+
+        print(self._c("dim", self.HEADER_LINE))
         print()
 
 
