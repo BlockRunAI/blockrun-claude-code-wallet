@@ -236,6 +236,44 @@ def cmd_image(
         return 1
 
 
+def get_usdc_balance(wallet_address: str) -> Optional[float]:
+    """
+    Get USDC balance for a wallet address on Base chain.
+
+    Args:
+        wallet_address: Ethereum wallet address (0x...)
+
+    Returns:
+        USDC balance as float, or None if query fails
+    """
+    import httpx
+
+    # USDC contract on Base
+    USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+    BASE_RPC = "https://mainnet.base.org"
+
+    try:
+        # balanceOf(address) function selector: 0x70a08231
+        data = {
+            "jsonrpc": "2.0",
+            "method": "eth_call",
+            "params": [{
+                "to": USDC_ADDRESS,
+                "data": f"0x70a08231000000000000000000000000{wallet_address[2:]}"
+            }, "latest"],
+            "id": 1
+        }
+
+        with httpx.Client(timeout=10) as client:
+            response = client.post(BASE_RPC, json=data)
+            result = response.json().get("result", "0x0")
+            # USDC has 6 decimals
+            return int(result, 16) / 1e6
+
+    except Exception:
+        return None
+
+
 def cmd_balance():
     """Show wallet balance."""
     if not HAS_SDK:
@@ -252,11 +290,13 @@ def cmd_balance():
         client = LLMClient()
         wallet = client.get_wallet_address()
 
-        # Note: Balance query would need to be added to SDK
-        # For now, show wallet address
+        # Get actual USDC balance from Base chain
+        balance = get_usdc_balance(wallet)
+        balance_str = f"{balance:.6f}" if balance is not None else "(unable to fetch)"
+
         branding.print_balance(
             wallet=wallet,
-            balance="(check at blockrun.ai)",
+            balance=balance_str,
             network="Base"
         )
 

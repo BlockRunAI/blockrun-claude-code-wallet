@@ -70,21 +70,28 @@ User: "yes"
 
 ## Commands
 
-```bash
-# Image generation
-python ~/.blockrun/scripts/run.py "description" --image
+Use the `blockrun_llm` SDK directly in Python:
+
+```python
+from blockrun_llm import LLMClient, ImageClient, get_wallet_address, list_models
 
 # Chat with specific model
-python ~/.blockrun/scripts/run.py "prompt" --model=xai/grok-3
+client = LLMClient()
+response = client.chat("xai/grok-3", "What's trending on X about AI?")
+print(response)
 
-# Cheap mode
-python ~/.blockrun/scripts/run.py "prompt" --model=deepseek/deepseek-chat
+# Image generation
+img_client = ImageClient()
+result = img_client.generate("a futuristic city at sunset")
+print(result.data[0].url)
 
-# Check wallet balance
-python ~/.blockrun/scripts/run.py --balance
+# Check wallet address
+print(get_wallet_address())
 
-# List available models
-python ~/.blockrun/scripts/run.py --models
+# List available models (no wallet needed)
+models = list_models()
+for m in models:
+    print(f"{m['id']}: ${m.get('inputPrice', 'N/A')}/M in")
 ```
 
 ## Available Models
@@ -135,20 +142,23 @@ open_wallet_qr(get_wallet_address())  # Opens scannable QR in image viewer
 - ~20 DALL-E images
 
 **Check balance:**
-```bash
-python ~/.blockrun/scripts/run.py --balance
+```python
+from blockrun_llm import get_wallet_address
+import httpx
+
+wallet = get_wallet_address()
+# Query USDC balance on Base
+USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+data = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": USDC, "data": f"0x70a08231000000000000000000000000{wallet[2:]}"}, "latest"], "id": 1}
+resp = httpx.post("https://mainnet.base.org", json=data).json()
+balance = int(resp.get("result", "0x0"), 16) / 1e6
+print(f"Wallet: {wallet}")
+print(f"Balance: {balance} USDC")
 ```
 
 ## Updates
 
-If user reports issues or asks about new features, suggest checking for updates:
-
-```bash
-python ~/.blockrun/scripts/run.py --check-update
-```
-
-Or update directly:
-
+To update the plugin:
 ```bash
 /plugin update blockrun-claude-code-wallet
 ```
