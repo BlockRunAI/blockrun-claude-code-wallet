@@ -86,6 +86,14 @@ pip install blockrun-llm
 ```
 
 **Step 2: Install the Claude Code skill**
+
+**Option A: Using Claude Code's plugin system (recommended)**
+```
+/plugin marketplace add BlockRunAI/blockrun-claude-code-wallet
+/plugin install blockrun
+```
+
+**Option B: Using git clone**
 ```bash
 git clone https://github.com/BlockRunAI/blockrun-claude-code-wallet ~/.claude/skills/blockrun
 ```
