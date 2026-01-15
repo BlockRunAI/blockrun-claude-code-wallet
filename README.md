@@ -1,4 +1,4 @@
-# BlockRun: Give Claude Code a Wallet to Pay for GPT, Grok, DALL-E
+# BlockRun: Give Your AI Agent a Wallet to Pay for GPT, Grok, DALL-E
 
 <div align="center">
 
@@ -14,7 +14,7 @@
 
 </div>
 
-**Claude can't generate images. Claude has no real-time X data. Claude stops when rate limited.**
+**Your AI agent can't generate images. It has no real-time X data. It stops when rate limited.**
 
 BlockRun fixes this with a wallet.
 
@@ -22,7 +22,7 @@ BlockRun fixes this with a wallet.
 
 ## The Problem
 
-Claude Code is powerful, but it has hard limits:
+AI coding agents (Claude Code, Antigravity) are powerful, but they have hard limits:
 
 ```
 Without BlockRun:              With BlockRun:
@@ -34,7 +34,7 @@ Without BlockRun:              With BlockRun:
 ❌ 5 API keys to manage        ✅ One wallet, all models
 ```
 
-**BlockRun extends Claude with capabilities it doesn't have.**
+**BlockRun extends your AI agent with capabilities it doesn't have.**
 
 ---
 
@@ -42,7 +42,7 @@ Without BlockRun:              With BlockRun:
 
 > **Give your AI agent a wallet. Let it pay for its own superpowers.**
 
-Claude is brilliant — but armless. BlockRun gives it hands.
+Your AI agent is brilliant — but limited. BlockRun removes those limits.
 
 With BlockRun, your AI agent has its own wallet. When it needs a capability it doesn't have, it pays for it — autonomously.
 
@@ -55,10 +55,10 @@ With BlockRun, your AI agent has its own wallet. When it needs a capability it d
 
 No API keys. No human in the loop. Just an agent with a budget, acquiring capabilities on demand.
 
-We don't replace Claude. We give Claude a wallet and let it buy what it needs.
+We don't replace your AI agent. We give it a wallet and let it buy what it needs.
 
 **Today:** Images, real-time data, LLM routing.
-**Tomorrow:** Video generation, music creation, and every capability Claude can't do.
+**Tomorrow:** Video generation, music creation, and every capability your agent can't do natively.
 
 ---
 
@@ -70,7 +70,7 @@ You fund the agent with $1-5 USDC. The agent pays for GPT, Grok, DALL-E autonomo
 
 | You Are... | You Want... | Start Here |
 |------------|-------------|------------|
-| **Developer** | Call GPT/Grok from Claude Code | [Quickstart](BULLETPROOF_QUICKSTART.md) |
+| **Developer** | Call GPT/Grok from your AI agent | [Quickstart](BULLETPROOF_QUICKSTART.md) |
 | **AI Power User** | Real-time X data, images | [Quickstart](BULLETPROOF_QUICKSTART.md) |
 | **Cost-Conscious** | 90% cheaper AI calls | [Cost Guide](#the-numbers) |
 | **MCP Enthusiast** | Prefer MCP over Skills | [MCP Server](#alternative-mcp-server) |
@@ -126,20 +126,20 @@ curl -fsSL https://raw.githubusercontent.com/BlockRunAI/blockrun-agent-wallet/ma
 
 ## Usage
 
-Just tell Claude:
+Just tell your agent:
 
 ```
 "blockrun generate an image of a sunset"        → DALL-E creates it
-"blockrun grok what's trending on X"            → Grok answers (Claude can't)
+"blockrun grok what's trending on X"            → Grok answers with live data
 "blockrun GPT review this code"                 → AI reviewing AI
 "blockrun deepseek summarize this file"         → DeepSeek saves 90%
 ```
 
-Or ask for something Claude can't do — it will suggest BlockRun:
+Or ask for something your agent can't do — it will suggest BlockRun:
 
 ```
 User: "generate a logo for my startup"
-Claude: "I can't generate images. Want me to route to DALL-E via BlockRun?"
+Agent: "I can't generate images. Want me to route to DALL-E via BlockRun?"
 User: "yes"
 → Done
 ```
@@ -176,7 +176,7 @@ User: "yes"
 3. Get QR code for easy funding:
    python -c "from blockrun_llm import open_wallet_qr, get_wallet_address; open_wallet_qr(get_wallet_address())"
 4. Scan QR with MetaMask, send $1-5 USDC on Base
-5. Claude calls any model, pays per request
+5. Your agent calls any model, pays per request
 6. Your private key never leaves your machine
 ```
 
@@ -198,13 +198,13 @@ User: "yes"
 ## Use Cases
 
 ### Image Generation
-Claude can't generate images. BlockRun routes to DALL-E.
+Your agent can't generate images natively. BlockRun routes to DALL-E.
 ```
 "blockrun generate a logo for my startup"
 ```
 
 ### Real-Time X/Twitter Data
-Claude's knowledge has a cutoff. Grok has live X access.
+Your agent's knowledge has a cutoff. Grok has live X access.
 ```
 "blockrun what's trending on X about AI agents?"
 ```
