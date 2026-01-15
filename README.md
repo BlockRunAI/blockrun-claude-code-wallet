@@ -200,61 +200,30 @@ User: "yes"
 
 ---
 
-## Use Cases Claude Can't Do
+## Use Cases
 
-### 1. Image Generation
-
-Claude can't generate images. Period.
-
-```python
-from blockrun_llm import ImageClient
-
-client = ImageClient()
-result = client.generate("a futuristic city at sunset")
-# Image saved locally
+### Image Generation
+Claude can't generate images. BlockRun routes to DALL-E.
+```
+"blockrun generate a logo for my startup"
 ```
 
-### 2. Real-Time X/Twitter Data
-
+### Real-Time X/Twitter Data
 Claude's knowledge has a cutoff. Grok has live X access.
-
-```python
-from blockrun_llm import LLMClient
-
-client = LLMClient()
-response = client.chat("xai/grok-3", "What's trending on X about AI agents?")
-# Real-time answer that Claude literally cannot provide
+```
+"blockrun what's trending on X about AI agents?"
 ```
 
-### 3. AI Reviewing AI
-
-Different models catch different bugs. GPT-5.2 finds things Claude misses.
-
-```python
-from blockrun_llm import LLMClient
-
-client = LLMClient()
-
-claude_code = """
-def fibonacci(n):
-    if n <= 1:
-        return n
-    return fibonacci(n-1) + fibonacci(n-2)
-"""
-
-review = client.chat("openai/gpt-5.2", f"Review for bugs:\n{claude_code}")
-# GPT-5.2: "O(2^n) complexity. Use memoization or iteration."
+### AI Reviewing AI
+Different models catch different bugs.
+```
+"blockrun GPT review this code for bugs"
 ```
 
-### 4. Cost Optimization
-
-DeepSeek is 10-50x cheaper. For simple tasks, why pay more?
-
-```python
-# Bulk processing? Use DeepSeek
-for file in files:
-    summary = client.chat("deepseek/deepseek-chat", f"Summarize: {file}")
-    # $0.0001 per call instead of $0.001
+### Cost Optimization
+DeepSeek is 10-50x cheaper for simple tasks.
+```
+"blockrun deepseek summarize these 500 files"
 ```
 
 ---
