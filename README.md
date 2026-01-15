@@ -1,4 +1,4 @@
-# BlockRun: Give Your AI Agent a Wallet to Pay for GPT, Grok, DALL-E (laude Code and Antigravity both work )
+# BlockRun: Give Your AI Agent a Wallet to Pay for GPT, Grok, DALL-E (Claude Code and Antigravity both work )
 
 <div align="center">
 
