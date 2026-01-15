@@ -80,17 +80,24 @@ You fund the agent with $1-5 USDC. The agent pays for GPT, Grok, DALL-E autonomo
 
 ## Install
 
-> **Note:** Claude Code does not support `/plugin install github:` syntax.
-> You must install using `git clone` as shown below.
-
 **Step 1: Install the Python SDK**
 ```bash
 pip install blockrun-llm
 ```
 
 **Step 2: Install the Claude Code skill**
+
+**Option A: Using `/plugin install` (recommended)**
 ```bash
-# Clone to Claude's skills directory
+# First, add the marketplace (one-time setup)
+/plugin marketplace add anthropics/claude-code
+
+# Then install the skill
+/plugin install github:BlockRunAI/blockrun-claude-code-wallet
+```
+
+**Option B: Using git clone**
+```bash
 git clone https://github.com/BlockRunAI/blockrun-claude-code-wallet ~/.claude/skills/blockrun
 ```
 

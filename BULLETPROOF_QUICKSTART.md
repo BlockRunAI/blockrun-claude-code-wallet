@@ -6,14 +6,24 @@
 
 ## Step 1: Install (30 seconds)
 
-> **Note:** Claude Code does not support `/plugin install github:` syntax.
-> You must use the commands below.
-
 ```bash
 # Install Python SDK
 pip install blockrun-llm
+```
 
-# Install Claude Code skill
+**Install the Claude Code skill (choose one):**
+
+**Option A: Using `/plugin install`**
+```bash
+# First, add the marketplace (one-time setup)
+/plugin marketplace add anthropics/claude-code
+
+# Then install the skill
+/plugin install github:BlockRunAI/blockrun-claude-code-wallet
+```
+
+**Option B: Using git clone**
+```bash
 git clone https://github.com/BlockRunAI/blockrun-claude-code-wallet ~/.claude/skills/blockrun
 ```
 
