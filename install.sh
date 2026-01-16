@@ -78,8 +78,8 @@ import sys
 sys.stdout.flush()
 PYEOF
 
-# Small delay to ensure terminal renders all text before opening QR
-sleep 0.5
+# Delay so user can read output before QR opens
+sleep 3
 
 # Open QR code AFTER all text is printed
 if [ -f "$HOME/.blockrun/qr.png" ]; then
